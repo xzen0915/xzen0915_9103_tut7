@@ -5,7 +5,7 @@
 __Part 1: Imaging Technique Inspiration__  
 _This inspiration came from a programming subject I previously studied called Processing, specifically the random walk algorithm in Processing. By simulating particles emanating from a specific point and gradually diminishing over time until they disappear, this method vividly demonstrates dynamics and fluidity. In team tasks, this approach can be used to dynamically display unique elements of selected artworks, such as color gradients and shape transformations, enhancing visual effects and the viewer's interactive experience._  
 [Image1 of inspiration](https://drive.google.com/file/d/1rhdvu0CvBV7rZLc7IyK-ad1CftzxQo2y/view?usp=sharing)  
-[Image2 of inspiration](https://drive.google.com/uc?id=Quiz 8 - 1.jpg)  
+[Image2 of inspiration](https://drive.google.com/file/d/15ij9szWoAeJG3uZzmmr02133vzfigHDz/view?usp=drive_link)  
 
 
 __Part 2: Coding Technique Exploration__  
