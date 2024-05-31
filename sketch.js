@@ -1,168 +1,153 @@
-//We need a variable to hold our image
-let img;
-
-//We will divide the image into segments
-let numSegments = 50;
-
-//We will store the segments in an array
-let segments = [];
-
-//let's add a variable to switch between drawing the image and the segments
-let drawSegments = true;
-
-//Let's make an object to hold the draw properties of the image
-let imgDrwPrps = {aspect: 0, width: 0, height: 0, xOffset: 0, yOffset: 0};
-
-//And a variable for the canvas aspect ratio
-let canvasAspectRatio = 0;
-
-//let's load the image from disk
-function preload() {
-  img = loadImage('/assets/Week7 Picture.jpg');
-}
+let gridSize = 10;
+let colors = ['#FFD700', '#FF0000', '#0000FF', '#D3D3D3', '#F5F5DC'];
+let specialCols;
+let bigBlocks = [];
 
 function setup() {
-  //We will make the canvas the same size as the image using its properties
-  createCanvas(windowWidth, windowHeight);
-  //let's calculate the aspect ratio of the image - this will never change so we only need to do it once
-  imgDrwPrps.aspect = img.width / img.height;
-  
-  //now let's calculate the draw properties of the image using the function we made
-  calculateImageDrawProps();
-  //We can use the width and height of the image to calculate the size of each segment
-  //We use these values to calculate the coordinates of the centre of each segment so we can get the colour of the pixel from the image
-  let segmentWidth = img.width / numSegments;
-  let segmentHeight = img.height / numSegments;
-  /*
-  Divide the original image into segments, we are going to use nested loops, this is the same as 
-  but we have changed the class defintion so we use the row and column position of the segment
-  */
- //this will be the column position of every segment, we set it outside the loop 
-let positionInColumn = 0;
-  for (let segYPos=0; segYPos<img.height; segYPos+=segmentHeight) {
-    //this is looping over the height
-    let positionInRow = 0
-    for (let segXPos=0; segXPos<img.width; segXPos+=segmentWidth) {
-      //We will use the x and y position to get the colour of the pixel from the image
-      //let's take it from the centre of the segment
-      let segmentColour = img.get(segXPos + segmentWidth / 2, segYPos + segmentHeight / 2);
-       let segment = new ImageSegment(positionInColumn, positionInRow,segmentColour);
-       segments.push(segment);
-       positionInRow++;
+  createCanvas(650, 690);
+  noStroke();
+  scale(1.5); 
+  specialCols = {
+    1: getRandomSegments(),
+    24: getRandomSegments(),
+    37: getRandomSegments(),
+    39: getRandomSegments()
+  };
+  for (let y = 0; y < height / 1.5; y += gridSize) { 
+    for (let x = 0; x < width / 1.5; x += gridSize) {
+      if (isSpecialRow(y) || isSpecialCol(x)) {
+        let colorIndex = getRandomPrimaryColor();
+        fill(colors[colorIndex]);
+      } else if (isSpecialRowSecond(y, x)) {
+        let colorIndex = getRandomSecondaryColor();
+        fill(colors[colorIndex]);
+      } else if (isSpecialColThird(x, y)) {
+        let colorIndex = getRandomTertiaryColor(x, y);
+        fill(colors[colorIndex]);
+      } else {
+        fill(colors[4]);
+      }
+      rect(x, y, gridSize, gridSize);
     }
-    positionInColumn++;
   }
-  for (const segment of segments) {
-    segment.calculateSegDrawProps();
-  }
+
+  drawBigBlocks();
+
+
+  let selectedBlocks = shuffle(bigBlocks).slice(0, 9);
+  selectedBlocks.forEach(block => {
+    let smallWidth = block.w * 2 / 5;
+    let smallHeight = block.h * 2 / 5;
+    let smallX = block.x + (block.w - smallWidth) / 2;
+    let smallY = block.y + (block.h - smallHeight) / 2;
+
+    let otherColors = ['#FF0000', '#FDFD96', '#0000FF'].filter(c => c !== block.color); 
+    let smallColor = random(otherColors); 
+    fill(smallColor);
+    rect(smallX * gridSize, smallY * gridSize, smallWidth * gridSize, smallHeight * gridSize);
+  });
 }
 
-function draw() {
-  background(0);
-  if (drawSegments) {
-    //let's draw the segments to the canvas
-    for (const segment of segments) {
-      segment.draw();
-    }
+function isSpecialRow(y) {
+  let row = y / gridSize;
+  return [1, 8, 21, 27, 30, 42, 47].includes(row);
+}
+
+function isSpecialRowSecond(y, x) {
+  let row = y / gridSize;
+  let col = x / gridSize;
+  if ([33, 38, 44].includes(row)) {
+    return col < 3;
+  }
+  return false;
+}
+
+function isSpecialCol(x) {
+  let col = x / gridSize;
+  return [3, 6, 11, 22, 35, 41].includes(col);
+}
+
+function isSpecialColThird(x, y) {
+  let col = x / gridSize;
+  return [1, 24, 37, 39].includes(col);
+}
+
+function getRandomPrimaryColor() {
+  let rnd = random(100);
+  if (rnd < 70) {
+    return 0; // Yellow
+  } else if (rnd < 80) {
+    return 1; // Red
+  } else if (rnd < 90) {
+    return 2; // Blue
   } else {
-    //let's draw the image to the canvas
-    image(img, imgDrwPrps.xOffset, imgDrwPrps.yOffset, imgDrwPrps.width, imgDrwPrps.height);
-  }
-}
-function keyPressed() {
-  if (key == " ") {
-    //this is a neat trick to invert a boolean variable,
-    //it will always make it the opposite of what it was
-    drawSegments = !drawSegments;
+    return 3; // Gray
   }
 }
 
-function windowResized() {
-  resizeCanvas(windowWidth, windowHeight);
-  calculateImageDrawProps();
-  for (const segment of segments) {
-    segment.calculateSegDrawProps();
+function getRandomSecondaryColor() {
+  let rnd = random(100);
+  if (rnd < 66) {
+    return 0; // Yellow
+  } else if (rnd < 100) {
+    return Math.floor(random(1, 4)); // Random between Red, Blue, Gray
   }
 }
 
-function calculateImageDrawProps() {
-  //Calculate the aspect ratio of the canvas
-  canvasAspectRatio = width / height;
-  //if the image is wider than the canvas
-  if (imgDrwPrps.aspect > canvasAspectRatio) {
-    //then we will draw the image to the width of the canvas
-    imgDrwPrps.width = width;
-    //and calculate the height based on the aspect ratio
-    imgDrwPrps.height = width / imgDrwPrps.aspect;
-    imgDrwPrps.yOffset = (height - imgDrwPrps.height) / 2;
-    imgDrwPrps.xOffset = 0;
-  } else if (imgDrwPrps.aspect < canvasAspectRatio) {
-    //otherwise we will draw the image to the height of the canvas
-    imgDrwPrps.height = height;
-    //and calculate the width based on the aspect ratio
-    imgDrwPrps.width = height * imgDrwPrps.aspect;
-    imgDrwPrps.xOffset = (width - imgDrwPrps.width) / 2;
-    imgDrwPrps.yOffset = 0;
+function getRandomTertiaryColor(x, y) {
+  let col = x / gridSize;
+  let row = y / gridSize;
+
+  if (specialCols[col] && specialCols[col].includes(row)) {
+    let rnd = random(100);
+    if (rnd < 60) {
+      return 0; // Yellow
+    } else {
+      return Math.floor(random(1, 4)); // Random between Red, Blue, Gray
+    }
   }
-  else if (imgDrwPrps.aspect == canvasAspectRatio) {
-    //if the aspect ratios are the same then we can draw the image to the canvas size
-    imgDrwPrps.width = width;
-    imgDrwPrps.height = height;
-    imgDrwPrps.xOffset = 0;
-    imgDrwPrps.yOffset = 0;
+  return 4; // Skin color
+}
+
+function getRandomSegments() {
+  let positions = [];
+  while (positions.length < 24) {
+    let segmentLength = random(10, 15);
+    let segmentStart = Math.floor(random(49 - segmentLength));
+    for (let i = 0; i < segmentLength; i++) {
+      if (positions.length < 24 && !positions.includes(segmentStart + i)) {
+        positions.push(segmentStart + i);
+      }
+    }
+  }
+  return positions;
+}
+
+function drawBigBlocks() {
+  let colors = ['#FF0000', '#FDFD96', '#0000FF']; // Red, Yellow, Blue
+  let gridCount = 49;
+  for (let i = 0; i < 15; i++) {
+    let w = floor(random(4, 8));
+    let h = floor(random(4, 8));
+    let x, y;
+
+    do {
+      x = floor(random(0, gridCount - w));
+      y = floor(random(0, gridCount - h));
+    } while (!(isSpecialRow(y * gridSize) || isSpecialRow((y + h) * gridSize - 1) ||
+               isSpecialCol(x * gridSize) || isSpecialCol((x + w) * gridSize - 1)));
+
+    let color = random(colors);
+    bigBlocks.push({x, y, w, h, color});
+    fill(color);
+    rect(x * gridSize, y * gridSize, w * gridSize, h * gridSize);
   }
 }
-//Here is our class for the image segments, we start with the class keyword
-class ImageSegment {
 
-  constructor(columnPositionInPrm, rowPostionInPrm  ,srcImgSegColourInPrm) {
-    //Now we have changed the class a lot, instead of the x and y position of the segment, we will store the row and column position
-    //The row and column position give us relative position of the segment in the image that do not change when the image is resized
-    //We will use these to calculate the x and y position of the segment when we draw it
-
-    this.columnPosition = columnPositionInPrm;
-    this.rowPostion = rowPostionInPrm;
-    this.srcImgSegColour = srcImgSegColourInPrm;
-    //These parameters are not set when we create the segment object, we will calculate them later
-    this.drawXPos = 0;
-    this.drawYPos = 0;
-    this.drawWidth = 0;
-    this.drawHeight = 0;
-  
-    
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = floor(random(i + 1));
+    [array[i], array[j]] = [array[j], array[i]]; 
   }
-
-  calculateSegDrawProps() {
-    //Here is where we will calculate the draw properties of the segment.
-    //The width and height are easy to calculate, remember the image made of segments is always the same size as the whole image even when it is resized
-    //We can use the width and height we calculated for the image to be drawn, to calculate the size of each segment
-    this.drawWidth = imgDrwPrps.width / numSegments;
-    this.drawHeight = imgDrwPrps.height / numSegments;
-    
-    //we can use the row and column position to calculate the x and y position of the segment
-    //Here is a diagram to help you visualise what is going on
-    
-    //          column0 column1 column2 column3 column4
-    //             ↓       ↓       ↓       ↓       ↓
-    //    row0 → 0,0     0,1     0,2     0,3     0,4
-    //    row1 → 1,0     1,1     1,2     1,3     1.4
-    //    row2 → 2,0     2,1     2,2     2,3     2,4
-    //    row3 → 3,0     3,1     3,2     3,3     3,4
-    //    row4 → 4,0     4,1     4,2     4,3     4,4
-
-    //The x position is the row position multiplied by the width of the segment plus the x offset we calculated for the image
-    this.drawXPos = this.rowPostion * this.drawWidth + imgDrwPrps.xOffset;
-    //The y position is the column position multiplied by the height of the segment plus the y offset we calculated for the image
-    this.drawYPos = this.columnPosition * this.drawHeight + imgDrwPrps.yOffset;
-  }
-
-  draw() {
-    //let's draw the segment to the canvas, first we set the stroke and fill colours
-    stroke(0);
-    fill(this.srcImgSegColour);
-    //Then draw the segment as a rectangle, using the draw properties we calculated
-    rect(this.drawXPos, this.drawYPos, this.drawWidth, this.drawHeight);
-  }
-
-
+  return array;
 }
