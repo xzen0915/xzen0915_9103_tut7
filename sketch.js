@@ -4,6 +4,10 @@ let specialCols;
 let bigBlocks = [];
 let grid = [];
 let hoverCell = null;
+let noiseScale = 0.1;
+let startNoiseTime = 15000; // 15 seconds
+let noiseStarted = false;
+let changeIndex = 0;
 
 function setup() {
   createCanvas(650, 690);
@@ -26,10 +30,14 @@ function setup() {
       } else if (isSpecialColThird(x, y)) {
         colorIndex = getRandomTertiaryColor(x, y);
       }
-      row.push({ x, y, colorIndex });
+      row.push({ x, y, colorIndex, isModified: false });
     }
     grid.push(row);
   }
+
+  setTimeout(() => {
+    noiseStarted = true;
+  }, startNoiseTime);
 
   drawGrid();
   drawBigBlocks();
@@ -37,7 +45,11 @@ function setup() {
 }
 
 function draw() {
-  drawGrid();
+  if (noiseStarted) {
+    drawGridWithNoise();
+  } else {
+    drawGrid();
+  }
   drawBigBlocks(); // 保留大方块
   drawSmallBlocks(); // 保留小方块
 }
@@ -48,6 +60,41 @@ function drawGrid() {
       fill(colors[cell.colorIndex]);
       rect(cell.x, cell.y, gridSize, gridSize);
     }
+  }
+
+  if (hoverCell) {
+    stroke(0);
+    strokeWeight(2);
+    fill(colors[hoverCell.colorIndex]);
+    rect(hoverCell.x, hoverCell.y, gridSize, gridSize);
+    noStroke();
+  }
+}
+
+function drawGridWithNoise() {
+  let numCells = grid.length * grid[0].length;
+  let cellIndex = 0;
+
+  for (let row of grid) {
+    for (let cell of row) {
+      if (cellIndex < changeIndex) {
+        if (!cell.isModified) {
+          let noiseVal = noise(cell.x * noiseScale, cell.y * noiseScale);
+          let colorIndex = floor(noiseVal * colors.length); // 将噪声值映射到颜色索引
+          fill(colors[colorIndex]);
+        } else {
+          fill(colors[cell.colorIndex]);
+        }
+      } else {
+        fill(colors[cell.colorIndex]);
+      }
+      rect(cell.x, cell.y, gridSize, gridSize);
+      cellIndex++;
+    }
+  }
+
+  if (frameCount % 10 === 0 && changeIndex < numCells) { // 控制变化速度
+    changeIndex++;
   }
 
   if (hoverCell) {
@@ -174,12 +221,17 @@ function mouseMoved() {
   } else {
     hoverCell = null;
   }
-  drawGrid();
+  if (!noiseStarted) {
+    drawGrid();
+  }
 }
 
 function keyPressed() {
   if ((key === 'A' || key === 'a') && hoverCell) {
     hoverCell.colorIndex = floor(random(4)); // Change color to random of Red, Yellow, Blue, Gray
-    drawGrid();
+    hoverCell.isModified = true; // 标记为手动修改
+    if (!noiseStarted) {
+      drawGrid();
+    }
   }
 }
