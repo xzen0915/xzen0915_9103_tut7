@@ -37,6 +37,8 @@ My animation inspiration and technical references mainly come from the following
 [The Coding Train - Perlin Noise in p5.js](https://www.youtube.com/watch?v=Qf4dIN99e2w&list=PLRqwX-V7Uu6bgPNQAdxQZpJuJCjeOr7VD)
 [The Coding Train - Noise vs Random in p5.js](https://www.youtube.com/watch?v=YcdldZ1E9gU)
 [How to Shuffle a JavaScript Array](https://www.youtube.com/watch?v=Gfx9UV2tpLg)
+[How to shuffle an array (Fisher-Yates algorithm) - Inside code](https://www.youtube.com/watch?v=4zx5bM2OcvA)
+[How To Shuffle An Array With Javascript](https://www.youtube.com/watch?v=PNJlMyloz7I)
 
 
     _Part 4:Technical explanation_
