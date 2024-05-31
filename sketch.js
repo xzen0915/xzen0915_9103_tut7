@@ -2,38 +2,73 @@ let gridSize = 10;
 let colors = ['#FFD700', '#FF0000', '#0000FF', '#D3D3D3', '#F5F5DC'];
 let specialCols;
 let bigBlocks = [];
+let grid = [];
+let hoverCell = null;
 
 function setup() {
   createCanvas(650, 690);
   noStroke();
-  scale(1.5); 
   specialCols = {
     1: getRandomSegments(),
     24: getRandomSegments(),
     37: getRandomSegments(),
     39: getRandomSegments()
   };
-  for (let y = 0; y < height / 1.5; y += gridSize) { 
+
+  for (let y = 0; y < height / 1.5; y += gridSize) {
+    let row = [];
     for (let x = 0; x < width / 1.5; x += gridSize) {
+      let colorIndex = 4; // Default color
       if (isSpecialRow(y) || isSpecialCol(x)) {
-        let colorIndex = getRandomPrimaryColor();
-        fill(colors[colorIndex]);
+        colorIndex = getRandomPrimaryColor();
       } else if (isSpecialRowSecond(y, x)) {
-        let colorIndex = getRandomSecondaryColor();
-        fill(colors[colorIndex]);
+        colorIndex = getRandomSecondaryColor();
       } else if (isSpecialColThird(x, y)) {
-        let colorIndex = getRandomTertiaryColor(x, y);
-        fill(colors[colorIndex]);
-      } else {
-        fill(colors[4]);
+        colorIndex = getRandomTertiaryColor(x, y);
       }
-      rect(x, y, gridSize, gridSize);
+      row.push({ x, y, colorIndex });
+    }
+    grid.push(row);
+  }
+
+  drawGrid();
+  drawBigBlocks();
+  drawSmallBlocks();
+}
+
+function draw() {
+  drawGrid();
+  drawBigBlocks(); // 保留大方块
+  drawSmallBlocks(); // 保留小方块
+}
+
+function drawGrid() {
+  for (let row of grid) {
+    for (let cell of row) {
+      fill(colors[cell.colorIndex]);
+      rect(cell.x, cell.y, gridSize, gridSize);
     }
   }
 
-  drawBigBlocks();
+  if (hoverCell) {
+    stroke(0);
+    strokeWeight(2);
+    fill(colors[hoverCell.colorIndex]);
+    rect(hoverCell.x, hoverCell.y, gridSize, gridSize);
+    noStroke();
+  }
+}
 
+function drawBigBlocks() {
+  let colors = ['#FF0000', '#FDFD96', '#0000FF']; // Red, Yellow, Blue
+  for (let i = 0; i < bigBlocks.length; i++) {
+    let block = bigBlocks[i];
+    fill(block.color);
+    rect(block.x * gridSize, block.y * gridSize, block.w * gridSize, block.h * gridSize);
+  }
+}
 
+function drawSmallBlocks() {
   let selectedBlocks = shuffle(bigBlocks).slice(0, 9);
   selectedBlocks.forEach(block => {
     let smallWidth = block.w * 2 / 5;
@@ -41,8 +76,8 @@ function setup() {
     let smallX = block.x + (block.w - smallWidth) / 2;
     let smallY = block.y + (block.h - smallHeight) / 2;
 
-    let otherColors = ['#FF0000', '#FDFD96', '#0000FF'].filter(c => c !== block.color); 
-    let smallColor = random(otherColors); 
+    let otherColors = ['#FF0000', '#FDFD96', '#0000FF'].filter(c => c !== block.color);
+    let smallColor = random(otherColors);
     fill(smallColor);
     rect(smallX * gridSize, smallY * gridSize, smallWidth * gridSize, smallHeight * gridSize);
   });
@@ -123,31 +158,28 @@ function getRandomSegments() {
   return positions;
 }
 
-function drawBigBlocks() {
-  let colors = ['#FF0000', '#FDFD96', '#0000FF']; // Red, Yellow, Blue
-  let gridCount = 49;
-  for (let i = 0; i < 15; i++) {
-    let w = floor(random(4, 8));
-    let h = floor(random(4, 8));
-    let x, y;
-
-    do {
-      x = floor(random(0, gridCount - w));
-      y = floor(random(0, gridCount - h));
-    } while (!(isSpecialRow(y * gridSize) || isSpecialRow((y + h) * gridSize - 1) ||
-               isSpecialCol(x * gridSize) || isSpecialCol((x + w) * gridSize - 1)));
-
-    let color = random(colors);
-    bigBlocks.push({x, y, w, h, color});
-    fill(color);
-    rect(x * gridSize, y * gridSize, w * gridSize, h * gridSize);
-  }
-}
-
 function shuffle(array) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = floor(random(i + 1));
-    [array[i], array[j]] = [array[j], array[i]]; 
+    [array[i], array[j]] = [array[j], array[i]];
   }
   return array;
+}
+
+function mouseMoved() {
+  let row = floor(mouseY / gridSize);
+  let col = floor(mouseX / gridSize);
+  if (row >= 0 && row < grid.length && col >= 0 && col < grid[row].length) {
+    hoverCell = grid[row][col];
+  } else {
+    hoverCell = null;
+  }
+  drawGrid();
+}
+
+function keyPressed() {
+  if ((key === 'A' || key === 'a') && hoverCell) {
+    hoverCell.colorIndex = floor(random(4)); // Change color to random of Red, Yellow, Blue, Gray
+    drawGrid();
+  }
 }
