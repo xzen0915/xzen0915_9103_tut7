@@ -32,7 +32,7 @@ I mainly animated the colors. The color of the grid will dynamically change base
 
 
     Part 3:Inspiration Sources& Reference Techniques
-My animation inspiration and technical references mainly come from the following video tutorials, which mainly provide examples and explanations about P5.js and Perlin Noise:
+My animation inspiration and technical references mainly come from the following video tutorials, which mainly provide examples and explanations about P5.js and Perlin Noise:  
 [The Coding Train - JavaScript setTimeout() Function - p5.js Tutorial](https://www.youtube.com/watch?v=nGfTjA8qNDA)  
 [The Coding Train - Perlin Noise in p5.js](https://www.youtube.com/watch?v=Qf4dIN99e2w&list=PLRqwX-V7Uu6bgPNQAdxQZpJuJCjeOr7VD)  
 [The Coding Train - Noise vs Random in p5.js](https://www.youtube.com/watch?v=YcdldZ1E9gU)  
